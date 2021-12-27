@@ -32,7 +32,31 @@ namespace AspNetCoreWebApiJwtBearer
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
-
+            #region swagger
+            //services.AddSwaggerGen();
+            services.AddSwaggerGen(options => {
+                options.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+                {
+                    Name = "Authorization",
+                    Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
+                    Scheme = "Bearer",
+                    BearerFormat = "JWT",
+                    In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+                    Description = "JWT Authorization header using the Bearer scheme."
+                });
+                options.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement {
+                {
+                    new Microsoft.OpenApi.Models.OpenApiSecurityScheme {
+                        Reference = new Microsoft.OpenApi.Models.OpenApiReference {
+                            Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                                Id = "Bearer"
+                    }
+                    },
+                new string[] {}
+                }
+            });
+            });
+            #endregion
             #region jwt
             var bindJwtSettings = new JwtSettings();
             Configuration.Bind("JsonWebTokenKeys", bindJwtSettings);
@@ -65,9 +89,15 @@ namespace AspNetCoreWebApiJwtBearer
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
-            }
+                app.UseSwagger();
+                app.UseSwaggerUI(c =>
+                {
+                    c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
+                    c.RoutePrefix = string.Empty;
+                });
 
-            app.UseHttpsRedirection();
+            }
+            //app.UseHttpsRedirection();
 
             app.UseRouting();
 
